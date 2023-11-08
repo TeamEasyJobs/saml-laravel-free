@@ -14,6 +14,7 @@ use MiniOrange\Helper\PluginSettings;
 use MiniOrange\Classes\Actions\AuthFacadeController;
 use MiniOrange\Helper\Lib\AESEncryption;
 use Illuminate\Support\Facades\Session;
+use App\Models\User;
 
 final class SSO
 {
@@ -32,6 +33,11 @@ final class SSO
                 $attrs['NameID'] = array(
                     "0" => $ssoemail
                 );
+                
+                //TODO: create or find user
+                $user = User::where('email', $ssoemail)->firstOrFail();
+                $token = $user->createToken(User::USER_ACCESS_TOKEN)->accessToken;
+
                 $sessionIndex = current($samlResponseObj->getAssertions())->getSessionIndex();
 
                 if (strcasecmp($relayStateUrl, Constants::TEST_RELAYSTATE) == 0) {
@@ -43,8 +49,9 @@ final class SSO
                     $_SESSION['username'] = $attrs['NameID'];
                     $encrypted_mail = urlencode(AESEncryption::encrypt_data($_SESSION['email'][0], "M12K19FV"));
                     $encrypted_name = urlencode(AESEncryption::encrypt_data($_SESSION['username'][0], "M12K19FV"));
-                    header('Location: sign?email=' . $encrypted_mail . '&name=' . $encrypted_name);
-                    exit();
+                    // header('Location: login?token=' . $token);
+                    return redirect()->to('/login?token=' . $token );
+                    // exit();
                 }
             } catch (\Exception $e) {
                 if (strcasecmp($relayStateUrl, Constants::TEST_RELAYSTATE) === 0)
