@@ -14,7 +14,8 @@ if (!is_dir($_SERVER['DOCUMENT_ROOT'] . '/miniorange/sso')) {
     );
     foreach ($file_paths_array as $path) {
         $src = __DIR__ . $path;
-        $dst = $_SERVER['DOCUMENT_ROOT'] . "/miniorange/sso" . $path;
+        // $dst = $_SERVER['DOCUMENT_ROOT'] . "/miniorange/sso" . $path;
+        $dst = public_path("/miniorange/sso" . $path);
         recurse_copy($src, $dst);
     }
 }
