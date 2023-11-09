@@ -33,10 +33,13 @@ final class SSO
                 $attrs['NameID'] = array(
                     "0" => $ssoemail
                 );
-                
+
                 //TODO: create or find user
                 $user = User::where('email', $ssoemail)->firstOrFail();
                 $token = $user->createToken(User::USER_ACCESS_TOKEN)->accessToken;
+
+                $type = $_COOKIE['sso-type'] ?? 'candidate';
+                $redirectUrl = $type === 'admin' ? 'admin/login' : 'candidate/login';
 
                 $sessionIndex = current($samlResponseObj->getAssertions())->getSessionIndex();
 
@@ -49,9 +52,9 @@ final class SSO
                     $_SESSION['username'] = $attrs['NameID'];
                     $encrypted_mail = urlencode(AESEncryption::encrypt_data($_SESSION['email'][0], "M12K19FV"));
                     $encrypted_name = urlencode(AESEncryption::encrypt_data($_SESSION['username'][0], "M12K19FV"));
-                    // header('Location: login?token=' . $token);
-                    return redirect()->to('/login?token=' . $token );
-                    // exit();
+
+                    header("Location: $redirectUrl?token=" . $token);
+                    exit();
                 }
             } catch (\Exception $e) {
                 if (strcasecmp($relayStateUrl, Constants::TEST_RELAYSTATE) === 0)
